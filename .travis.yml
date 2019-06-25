@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t larsnohrstedt/multi-test -f ./client/Dockerfile.dev ./client 
+
+script:
+  - docker run larsnohrstedt/multi-test npm test -- --coverage
+
+after_success:
+  - docker build -t larsnohrstedt/multi-client ./client
+  - docker build -t larsnohrstedt/multi-nginx ./nginx
+  - docker build -t larsnohrstedt/multi-server ./server
+  - docker build -t larsnohrstedt/multi-worker ./worker  
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    # Take those images and push them into docker hub
+  - docker push larsnohrstedt/multi-client
+  - docker push larsnohrstedt/multi-nginx
+  - docker push larsnohrstedt/multi-server
+  - docker push larsnohrstedt/multi-worker
+  
